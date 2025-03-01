@@ -4,12 +4,13 @@ include config.mk
 
 ASRC = $(wildcard $(addsuffix /*.S, $(SRCS)))
 CSRC = $(wildcard $(addsuffix /*.c, $(SRCS)))
-OBJS = $(addprefix $(BIN_DIR)/, $(notdir $(ASRC:.S=.o) $(CSRC:.c=.o)))
+OBJS = $(addprefix $(OBJ_DIR)/, $(ASRC:.S=.o) $(CSRC:.c=.o))
 
 all: options $(ELF) $(HEX) $(LST)
 	$(SIZE) $(ELF)
 
 $(ELF): $(OBJS)
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS)
 
 $(HEX): $(ELF)
@@ -18,23 +19,16 @@ $(HEX): $(ELF)
 $(LST): $(ELF)
 	$(OBJDUMP) $(OBJDUMP_OPT) $< > $@
 
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.c | $(BIN_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(BIN_DIR)/%.o: $(SYS_DIR)/%.c | $(BIN_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.S | $(BIN_DIR)
-	$(CC) $(ASFLAGS) -c $< -o $@
-
-$(BIN_DIR)/%.o: $(SYS_DIR)/%.S | $(BIN_DIR)
-	$(CC) $(ASFLAGS) -c $< -o $@
-
-$(BIN_DIR):
-	@mkdir -p $@
+$(OBJ_DIR)/%.o: %.S
+	@mkdir -p $(@D)
+	$(CC) $(ASFLAGS) -c -o $@ $<
 
 clean:
-	rm -rf $(BIN_DIR)
+	rm -rf $(OBJ_DIR) $(OUT_DIR)
 
 options:
 	@echo "$(PROGRAM) build options:"
