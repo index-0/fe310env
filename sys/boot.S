@@ -3,16 +3,17 @@
 .section .text.init.enter
 .global _boot
 _boot:
+#ifndef WITHOUT_BOOTCFG
 	/* init qspi0 */
 	li t0, 0x10014000
 	li t1, 0x3
 	li t2, 0x80000
-	li t3, 0x00030007
+	li t3, 0x30007
 	sw t1, 0x00(t0)
 	sw t2, 0x40(t0)
 	sw t3, 0x64(t0)
 
-	/* init gpio0 */
+	/* init gpio */
 	li t0, 0x10012000
 	li t1, 0x30000
 	sw t1, 0x08(t0)
@@ -41,6 +42,7 @@ _boot:
 	bgez t1, 1b
 	sw t2, 0x08(t0)
 	sw t3, 0x00(t0)
+#endif
 
 	/* irq config */
 	csrci mstatus, 0x8
