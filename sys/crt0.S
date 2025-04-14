@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
-.section .text.init.enter
+.section .init
 .global _start
 _start:
 .option push
