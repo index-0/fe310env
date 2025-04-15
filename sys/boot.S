@@ -3,6 +3,67 @@
 .section .text.init.enter
 .global _boot
 _boot:
+#ifndef WITHOUT_BRICKGUARD
+	li s0, 0x10012000
+	addi s1, s0, 0x0C
+	li s2, 0x10000000
+	li s3, 0xF001BA11
+	lw s4, 0xBC(s2)
+	li a0, 0x200bff8
+	li a1, 0x4000
+
+	bne s3, s4, 2f
+
+	sw zero, 0xBC(s2)
+
+	li s5, 0x400000
+	sw s5, 0x0C(s0)
+	sw s5, 0x08(s0)
+1:
+	amoxor.w zero, s5, (s1)
+	jal .Lwait
+	j 1b
+2:
+	li s5, 0x80000
+	sw s5, 0x0C(s0)
+	sw s5, 0x08(s0)
+
+	amoxor.w zero, s5, (s1)
+	jal .Lwait
+	amoxor.w zero, s5, (s1)
+	sw s3, 0xBC(s2)
+	jal .Lwait
+	amoxor.w zero, s5, (s1)
+	sw s4, 0xBC(s2)
+	jal .Lwait
+
+	sw zero, 0x08(s0)
+	sw zero, 0x0C(s0)
+
+	j 3f
+
+.Lwait:
+	lw t1, 0x04(a0)
+	lw t0, 0x00(a0)
+	lw t4, 0x04(a0)
+	bne t1, t4, .Lwait
+
+	add t2, t0, a1
+	sltu t4, t2, t0
+	add t3, t1, t4
+1:
+	lw t1, 0x04(a0)
+	lw t0, 0x00(a0)
+	lw t4, 0x04(a0)
+	bne t1, t4, 1b
+
+	bltu t1, t3, 1b
+	bgtu t1, t3, 1f
+	bltu t0, t2, 1b
+1:
+	ret
+3:
+#endif
 #ifndef WITHOUT_BOOTCFG
 	/* init qspi0 */
 	li t0, 0x10014000
