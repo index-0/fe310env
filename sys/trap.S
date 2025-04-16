@@ -30,26 +30,26 @@ _trap:
 	bgez t1, 1f
 
 	li t1, 0x03
-	beq t0, t1, _msi
+	beq t0, t1, .Lmsi
 
 	li t1, 0x07
-	beq t0, t1, _mti
+	beq t0, t1, .Lmti
 
 	li t1, 0x0B
-	beq t0, t1, _mei
+	beq t0, t1, .Lmei
 
-	j _panic
+	j .Lpanic
 
 1:
 	li t1, 0x08
-	beq t0, t1, _ecall
+	beq t0, t1, .Lecall
 
 	li t1, 0x0B
-	beq t0, t1, _ecall
+	beq t0, t1, .Lecall
 
-	j _panic
+	j .Lpanic
 
-_end:
+.Lend:
 	lw ra, 0x00(sp)
 	lw t0, 0x04(sp)
 	lw t1, 0x08(sp)
@@ -70,20 +70,20 @@ _end:
 	mret
 
 
-_mei:
+.Lmei:
 	li t0, 0x0C200004
 	lw t1, 0x00(t0)
 	sw t1, 0x00(t0)
-	j _end
+	j .Lend
 
 
-_msi:
+.Lmsi:
 	li t0, 0x2000000
 	sw zero, 0x00(t0)
-	j _end
+	j .Lend
 
 
-_mti:
+.Lmti:
 	li t0, 0x02004000
 	li t1, 0x0200BFF8
 	li t2, TIMER_TICK
@@ -97,10 +97,10 @@ _mti:
 	add t3, t3, t5
 	sw t1, 0x00(t0)
 	sw t3, 0x04(t0)
-	j _end
+	j .Lend
 
 
-_ecall:
+.Lecall:
 	la ra, 2f
 	li t0, 0x3F
 	bne t0, a7, 1f
@@ -125,11 +125,11 @@ _ecall:
 	addi t0, t0, 0x04
 	csrw mepc, t0
 
-	j _end
+	j .Lend
 
 
-_panic:
+.Lpanic:
 	csrr t0, mcause
 	csrr t1, mepc
 	csrr t2, mtval
-	j _panic
+	j .Lpanic
