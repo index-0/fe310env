@@ -39,4 +39,7 @@ options:
 	@echo "LDLIBS  = $(LDLIBS)"
 	@echo
 
+simulate: $(ELF)
+	$(QEMU) -nographic -machine $(QEMU_MACHINE) --kernel $(ELF) -S -s
+
 .PHONY: all clean options

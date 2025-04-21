@@ -42,3 +42,10 @@ ifeq ($(TARGET), fe310-g000)
 	LDFLAGS += -Wl,--defsym=__rom_size=0x20000000
 endif
 LDLIBS += -Wl,--start-group -lc_nano -lgloss_nano -lm_nano -Wl,--end-group
+
+QEMU := qemu-system-riscv32
+ifeq ($(TARGET), fe310-g000)
+	QEMU_MACHINE = sifive_e
+else
+	QEMU_MACHINE = sifive_e,revb=true
+endif
