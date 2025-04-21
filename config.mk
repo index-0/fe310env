@@ -18,6 +18,9 @@ LST := $(OUT_DIR)/$(PROGRAM).lst
 STACK_SIZE ?= 0x400
 TIMER_TICK ?= 0x4e200
 
+WITHOUT_BOOTCFG    ?= 0
+WITHOUT_BRICKGUARD ?= 0
+
 CROSS_COMPILE ?= riscv32-unknown-elf-
 CC      := $(CROSS_COMPILE)gcc
 GDB     := $(CROSS_COMPILE)gdb
@@ -28,6 +31,12 @@ SIZE    := $(CROSS_COMPILE)size
 OBJDUMP_OPT = --source --all-headers --demangle --line-numbers --wide
 
 ASFLAGS += -DTIMER_TICK=$(TIMER_TICK)
+ifeq ($(WITHOUT_BOOTCFG), 1)
+	ASFLAGS += -DWITHOUT_BOOTCFG=$(WITHOUT_BOOTCFG)
+endif
+ifeq ($(WITHOUT_BRICKGUARD), 1)
+	ASFLAGS += -DWITHOUT_BRICKGUARD=$(WITHOUT_BRICKGUARD)
+endif
 CFLAGS  += -pipe -std=c99 -Wpedantic -Wall
 CFLAGS  += -mabi=ilp32 -march=rv32imac_zicsr_zifencei
 CFLAGS  += -mcpu=sifive-e31 -mtune=sifive-e31 -mcmodel=medlow
