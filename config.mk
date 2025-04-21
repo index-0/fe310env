@@ -3,6 +3,7 @@
 PROGRAM ?= firmware
 
 BSP_DIR = bsp
+INC_DIR = inc
 OBJ_DIR = obj
 OUT_DIR = out
 SRC_DIR = src
@@ -30,6 +31,7 @@ ASFLAGS += -DTIMER_TICK=$(TIMER_TICK)
 CFLAGS  += -pipe -std=c99 -Wpedantic -Wall
 CFLAGS  += -mabi=ilp32 -march=rv32imac_zicsr_zifencei
 CFLAGS  += -mcpu=sifive-e31 -mtune=sifive-e31 -mcmodel=medlow
+CFLAGS  += -I$(INC_DIR)
 ifeq ($(DEBUG), 1)
 	CFLAGS += -g -Og
 else
