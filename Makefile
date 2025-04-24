@@ -11,7 +11,7 @@ all: options $(ELF) $(HEX) $(LST)
 
 $(ELF): $(OBJS)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LIBCC) $(LDLIBS)
 
 $(HEX): $(ELF)
 	$(OBJCOPY) -O ihex $< $@
@@ -36,10 +36,11 @@ options:
 	@echo "ASFLAGS = $(ASFLAGS)"
 	@echo "CFLAGS  = $(CFLAGS)"
 	@echo "LDFLAGS = $(LDFLAGS)"
+	@echo "LIBCC   = $(LIBCC)"
 	@echo "LDLIBS  = $(LDLIBS)"
 	@echo
 
 simulate: $(ELF)
 	$(QEMU) -nographic -machine $(QEMU_MACHINE) --kernel $(ELF) -S -s
 
-.PHONY: all clean options
+.PHONY: all clean options simulate
