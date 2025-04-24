@@ -85,12 +85,11 @@ _boot:
 
 	/* init uart0 */
 	li t0, 0x10013000
-	li t1, 0x10001
-	li t2, 0x1
-	li t3, 0x27F
+	li t1, 0x1
+	li t2, 0x27F
 	sw t1, 0x08(t0)
-	sw t2, 0x0C(t0)
-	sw t3, 0x18(t0)
+	sw t1, 0x0C(t0)
+	sw t2, 0x18(t0)
 
 	/* init clock */
 	li t0, 0x10008000
