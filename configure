@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# See LICENSE file for copyright and license details.
+
+
 usage () {
 cat <<EOF
 usage: $0 [OPTION]... [VAR=VALUE]... [BOARD]
@@ -162,7 +165,10 @@ GDB=*) GDB=${arg#*=} ;;
 LDFLAGS=*) LDFLAGS=${arg#*=} ;;
 LDLIBS=*) LDLIBS=${arg#*=} ;;
 LIBCC=*) LIBCC=${arg#*=} ;;
+OBJCOPY=*) OBJCOPY=${arg#*=} ;;
+OBJDUMP=*) OBJDUMP=${arg#*=} ;;
 QEMU=*) QEMU=${arg#*=} ;;
+SIZE=*) SIZE=${arg#*=} ;;
 *=*) ;;
 *) board=$arg ;;
 esac
@@ -223,13 +229,6 @@ if ! fnmatch 'riscv*' "$target" ; then
 fail "error: compiler does not target riscv"
 fi
 
-tryflag CFLAGS_TRY -Werror=unknown-warning-option
-tryflag CFLAGS_TRY -Werror=unused-command-line-argument
-tryflag CFLAGS_TRY -Werror=ignored-optimization-argument
-
-tryldflag LDFLAGS_TRY -Werror=unknown-warning-option
-tryldflag LDFLAGS_TRY -Werror=unused-command-line-argument
-
 printf "checking for C compiler family... "
 cc_ver="$(LC_ALL=C $CC -v 2>&1)"
 cc_family=unknown
@@ -240,13 +239,39 @@ cc_family=clang
 fi
 echo "$cc_family"
 
+tc_prefix=$CROSS_COMPILE
+test "$cc_family" = clang && tc_prefix=llvm-
+: ${OBJCOPY:=${tc_prefix}objcopy}
+: ${OBJDUMP:=${tc_prefix}objdump}
+: ${SIZE:=${tc_prefix}size}
+
+printf "checking for objcopy... %s\n" "$OBJCOPY"
+if ! cmdexists "$OBJCOPY"; then
+fail "error: objcopy '$OBJCOPY' not found"
+fi
+
+printf "checking for objdump... %s\n" "$OBJDUMP"
+if ! cmdexists "$OBJDUMP"; then
+fail "error: objdump '$OBJDUMP' not found"
+fi
+
+printf "checking for size... %s\n" "$SIZE"
+if ! cmdexists "$SIZE"; then
+fail "error: size '$SIZE' not found"
+fi
+
+tryflag CFLAGS_TRY -Werror=unknown-warning-option
+tryflag CFLAGS_TRY -Werror=unused-command-line-argument
+tryflag CFLAGS_TRY -Werror=ignored-optimization-argument
+
+tryldflag LDFLAGS_TRY -Werror=unknown-warning-option
+tryldflag LDFLAGS_TRY -Werror=unused-command-line-argument
+
 if ! fnmatch '-std=*|*\ -std=*' "$CFLAGS_AUTO $CFLAGS" ; then
 tryflag CFLAGS_AUTO -std=c99
 fi
-tryflag CFLAGS_AUTO -ffreestanding || \
-tryflag CFLAGS_AUTO -fno-builtin
 
-tryflag CFLAGS_AUTO -mabi=ilp32 \
+tryflag CFLAGS_AUTO -mabi=ilp32 || \
 fail "error: compiler doesn't support the ILP32 ABI"
 tryflag CFLAGS_AUTO -march=rv32imac_zicsr_zifencei || \
 fail "error: compiler doesn't support the RV32IMAC_ZICSR_ZIFENCEI architecture"
@@ -254,7 +279,7 @@ tryflag CFLAGS_AUTO -mcpu=sifive-e31
 tryflag CFLAGS_AUTO -mtune=sifive-e31
 tryflag CFLAGS_AUTO -mcmodel=medlow
 
-test "$debug" = yes && CFLAGS_AUTO=-g
+test "$debug" = yes && CFLAGS_AUTO="$CFLAGS_AUTO -g"
 
 printf "checking for optimization settings... "
 case "x$optimize" in
@@ -331,19 +356,15 @@ tryflag ASFLAGS_AUTO -DTIMER_TICK=$timer_tick
 test "x$bootconfig" = xno && ASFLAGS_AUTO="$ASFLAGS_AUTO -DWITHOUT_BOOTCFG"
 test "x$brickguard" = xno && ASFLAGS_AUTO="$ASFLAGS_AUTO -DWITHOUT_BOOTGRD"
 
-test -z "$LIBCC" && tryldflag LIBCC -lgcc && tryldflag LIBCC -lgcc_eh
+if test "$cc_family" = clang ; then
 test -z "$LIBCC" && tryldflag LIBCC -lcompiler_rt
+fi
+test -z "$LIBCC" && tryldflag LIBCC -lgcc && tryldflag LIBCC -lgcc_eh
 test -z "$LIBCC" && try_libcc=`$CC -print-libgcc-file-name 2>/dev/null` \
 && tryldflag LIBCC "$try_libcc"
 test -z "$LIBCC" && fail "error: unable to detect compiler runtime library"
 
 LDLIBS_AUTO="-Wl,--start-group -lc_nano -lm_nano -lgloss_nano -Wl,--end-group"
-
-tc_prefix=$CROSS_COMPILE
-test "$cc_family" = clang && tc_prefix=llvm-
-: ${OBJCOPY:=${tc_prefix}objcopy}
-: ${OBJDUMP:=${tc_prefix}objdump}
-: ${SIZE:=${tc_prefix}size}
 
 test "$board" != hifive1 && qemu_machine="$qemu_machine,revb=true"
 
@@ -361,7 +382,6 @@ cat << EOF
 
 PROGRAM ?= $program
 
-BSP_DIR := bsp
 INC_DIR := $incdir
 OBJ_DIR := $objdir
 OUT_DIR := $outdir
