@@ -11,7 +11,7 @@ all: options $(ELF) $(HEX) $(LST)
 
 $(ELF): $(OBJS)
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LIBCC) $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS) $(LIBCC)
 
 $(HEX): $(ELF)
 	$(OBJCOPY) -O ihex $< $@
