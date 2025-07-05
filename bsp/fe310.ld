@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details. */
 
-ENTRY(_boot)
+ENTRY(_start)
 
 MEMORY
 {

@@ -24,6 +24,8 @@ _start:
 	call atexit
 	call __libc_init_array
 
+	call boot
+
 	li a0, 0
 	li a1, 0
 	call main
