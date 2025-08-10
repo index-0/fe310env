@@ -348,8 +348,8 @@ if test "$board" = hifive1 ; then
 tryldflag LDFLAGS_AUTO -Wl,--defsym=__rom_size=0x20000000 || \
 fail "error: cannot set __rom_size symbol"
 fi
-tryldflag LDFLAGS_AUTO -Tbsp/fe310.ld || \
-fail "error: missing/invalid linker script 'bsp/fe310.ld'"
+tryldflag LDFLAGS_AUTO -Tsys/fe310.ld || \
+fail "error: missing/invalid linker script 'sys/fe310.ld'"
 LDFLAGS_AUTO="$LDFLAGS_AUTO -Wl,-Map,"$outdir"/"$program".map"
 
 tryflag ASFLAGS_AUTO -DTIMER_TICK=$timer_tick
