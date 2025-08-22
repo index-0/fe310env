@@ -1,0 +1,112 @@
+# See LICENSE file for copyright and license details.
+
+-include Makefile.local
+
+ifndef ENVDIR
+$(error ENVDIR is not set.)
+endif
+
+LIBDIR ?= $(ENVDIR)/lib
+OUTDIR ?= out
+OBJDIR := $(OUTDIR)/obj
+
+TOOLCHAIN ?= gnu
+
+ifeq ($(TOOLCHAIN),llvm)
+	CC = clang
+	AR = llvm-ar
+	OBJCOPY = llvm-objcopy
+	OBJDUMP = llvm-objdump
+	SIZE = llvm-size
+else
+	CROSSPREFIX ?= riscv32-unknown-elf-
+	AR := $(CROSSPREFIX)ar
+	CC := $(CROSSPREFIX)gcc
+	GDB := $(CROSSPREFIX)gdb
+	OBJCOPY := $(CROSSPREFIX)objcopy
+	OBJDUMP := $(CROSSPREFIX)objdump
+	SIZE := $(CROSSPREFIX)size
+endif
+
+BOARD := $(strip $(BOARD))
+
+LIBENV_DIR ?= $(LIBDIR)/libenv
+LIBFE310_DIR ?= $(LIBDIR)/libfe310
+LIBENV_INC := $(LIBENV_DIR)/inc
+LIBFE310_INC := $(LIBFE310_DIR)/inc
+LIBENV_LIB := $(LIBENV_DIR)/lib
+LIBFE310_LIB := $(LIBFE310_DIR)/lib
+LIBENV := $(LIBENV_LIB)/libenv.a
+LIBFE310 := $(LIBFE310_LIB)/libfe310.a
+
+INCLUDES += -I$(LIBENV_INC) -I$(LIBFE310_INC)
+ARCH_CFLAGS ?= -mabi=ilp32 -march=rv32imac_zicsr_zifencei\
+	-mtune=sifive-e31 -mcmodel=medlow
+CFLAGS ?= -std=c99 -pipe -Os -Wall -Wextra -Wpedantic
+override CFLAGS += -ffunction-sections -fdata-sections
+LIBFE310_CFLAGS := $(CFLAGS)
+override CFLAGS += $(ARCH_CFLAGS)
+LIBENV_CFLAGS := $(CFLAGS)
+override CFLAGS += $(INCLUDES)
+LDSCRIPT ?= $(ENVDIR)/ld/hifive1.ld
+override LDFLAGS := -nostdlib -Wl,--sort-section,alignment -Wl,--sort-common\
+	-Wl,--no-undefined -Wl,--gc-sections $(LDFLAGS)
+ifeq (hifive1, $(BOARD))
+override LDFLAGS += --defsym=__rom_size=0x20000000
+endif
+override LDFLAGS += -L$(LIBENV_LIB) -L$(LIBFE310_LIB) -T$(LDSCRIPT)
+override LDLIBS := -Wl,--start-group -lenv -lfe310 -lc -lm -lgloss $(LDLIBS)
+override LDLIBS += -Wl,--end-group
+LIBCC ?= -lgcc
+
+OBJDUMP_OPT ?= --disassemble-all --file-headers --file-offsets\
+	--section-headers --line-numbers --private-headers --source\
+	--wide --disassemble-zeroes
+
+OBJ := $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRC))) \
+	$(patsubst %.S,$(OBJDIR)/%.o,$(filter %.S,$(SRC)))
+
+ELF := $(OUTDIR)/fw.elf
+HEX := $(ELF:.elf=.hex)
+LST := $(ELF:.elf=.lst)
+
+all: libs $(ELF) $(HEX) $(LST)
+	$(SIZE) $(ELF)
+
+libs: $(LIBENV) $(LIBFE310)
+
+$(LIBENV):
+	$(MAKE) -C $(LIBENV_DIR) \
+		AR="$(AR)" CC="$(CC)" CFLAGS="$(LIBENV_CFLAGS)"
+
+$(LIBFE310):
+	cd $(LIBFE310_DIR) && \
+		AR="$(AR)" CC="$(CC)" CFLAGS="$(LIBFE310_CFLAGS)" ./configure
+	$(MAKE) -C $(LIBFE310_DIR)
+
+$(ELF): $(OBJ)
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ $(LDLIBS) $(LIBCC)
+
+$(HEX): $(ELF)
+	$(OBJCOPY) -O ihex $< $@
+
+$(LST): $(ELF)
+	$(OBJDUMP) $(OBJDUMP_OPT) $< > $@
+
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJDIR)/%.o: %.S
+	@mkdir -p $(@D)
+	$(CC) $(ASFLAGS) -c -o $@ $<
+
+clean:
+	@$(RM) -fr $(OUTDIR)
+
+clean-libs:
+	$(MAKE) -C $(LIBENV_DIR) clean
+	$(MAKE) -C $(LIBFE310_DIR) clean
+
+.PHONY: all clean clean-libs libs

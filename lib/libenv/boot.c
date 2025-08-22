@@ -22,8 +22,8 @@
 #define UART_BAUDRATE 115200
 #endif
 
-#ifndef QSPI_BAUDRATE
-#define QSPI_BAUDRATE 40000000
+#ifndef FLASH_BAUDRATE
+#define FLASH_BAUDRATE 40000000
 #endif
 
 #define TRAP_STACK_SIZE 512
@@ -71,10 +71,8 @@ guard(void)
 static inline void
 clock(void)
 {
-	const u32 r = 1, f = 31, q = 1;
-	prci_pll(r, f, q, PRCI_PLL_SEL_HFROSC, PRCI_PLL_REFSEL_HFXOSC, false);
+	prci_pll(1, 31, 3, PRCI_PLL_SEL_PLL, PRCI_PLL_REFSEL_HFXOSC, true);
 	while(prci_is_pll_lock());
-	prci_set_pll_sel(PRCI_PLL_SEL_PLL);
 	prci_set_hfrosc_en(false);
 }
 
@@ -161,13 +159,13 @@ riscv(void)
 void __attribute__((weak))
 boot(void)
 {
-#ifndef WITHOUT_BOOTGUARD
+#ifndef WITHOUT_BRICKGUARD
 	guard();
 #endif
-#ifndef WITHOUT_BOOTCFG
+#ifndef WITHOUT_BOOTCONFIG
 	clock();
 	u32 hfclk = prci_measure_hfclk(3000);
-	flash(hfclk, QSPI_BAUDRATE);
+	flash(hfclk, FLASH_BAUDRATE);
 	tty(hfclk, UART_BAUDRATE);
 #endif
 	plic();

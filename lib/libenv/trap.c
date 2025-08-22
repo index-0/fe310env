@@ -1,8 +1,5 @@
 /* See LICENSE file for copyright and license details. */
 
-#include <stdint.h>
-#include <unistd.h>
-
 #include <fe310/bits.h>
 #include <fe310/clint.h>
 #include <fe310/plic.h>
@@ -28,16 +25,16 @@
 #define RTCFQ 32768
 
 typedef struct {
-	uint32_t s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11;
-	uint32_t ra, t0, t1, t2, t3, t4, t5, t6;
-	uint32_t a0, a1, a2, a3, a4, a5, a6, a7;
-	uint32_t pc;
-	uint32_t pad[3];
+	u32 s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11;
+	u32 ra, t0, t1, t2, t3, t4, t5, t6;
+	u32 a0, a1, a2, a3, a4, a5, a6, a7;
+	u32 pc;
+	u32 pad[3];
 } TrapFrame;
 
-extern ssize_t sys_read(int fd, void *buf, size_t count);
-extern ssize_t sys_write(int fd, const void *buf, size_t count);
-extern long sys_brk(unsigned long brk);
+extern ssize sys_read(s32 fd, void *buf, usize count);
+extern ssize sys_write(s32 fd, const void *buf, usize count);
+extern s32 sys_brk(u32 brk);
 
 void isr_timer(void);
 void isr_plic(void);
@@ -46,16 +43,26 @@ void panic(void);
 
 __attribute__((aligned(16))) u8 trap_stack[512];
 
+
+static void __attribute__ ((noinline))
+ebreak(void)
+{
+	__asm__ volatile ("nop");
+}
+
 static void __attribute((used))
 trap_handler(TrapFrame *tf)
 {
-	uint32_t cause, mcause, mepc;
+	u32 cause, mcause, mepc;
 
-	__asm__ volatile ( "csrr %0, mcause"
+	__asm__ volatile (
+		"csrr %0, mcause"
 		: "=&r"(mcause)
 		:
 		: "memory"
 	);
+
+	ebreak();
 
 	cause = mcause & MCAUSE_MSK_CAUSE;
 
@@ -83,23 +90,23 @@ trap_handler(TrapFrame *tf)
 		switch(tf->a7) {
 		case SYSCALL_READ:
 			tf->a0 = sys_read(
-				(int32_t)tf->a0,
+				(s32)tf->a0,
 				(void *)tf->a1,
-				(size_t)tf->a2
+				(usize)tf->a2
 			);
 			break;
 		case SYSCALL_WRITE:
 			tf->a0 = sys_write(
-				(int32_t)tf->a0,
+				(s32)tf->a0,
 				(const void*)tf->a1,
-				(size_t)tf->a2
+				(usize)tf->a2
 			);
 			break;
 		case SYSCALL_BRK:
 			tf->a0 = sys_brk((unsigned long)tf->a0);
 			break;
 		default:
-			tf->a0 = -38;
+			tf->a0 = 0;
 			break;
 		}
 
