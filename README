@@ -1,0 +1,41 @@
+fe310env - FE310 development environment
+========================================
+fe310env is a minimalist development environment for the SiFive FE310 family.
+It provides the small runtime and build pieces needed to produce firmware
+for FE310-based boards.
+
+Features
+--------
+* Optimized bootloader that reclaims ~99.3% of the 64 KiB boot region
+* Trap and exception handler with weak defaults for easy override
+* Brickguard recovery to unbrick the board after a bad flash
+* Initializes the C runtime and supports Newlib libc
+* Includes libfe310, a minimal FE310 library for MMIO and peripherals
+* Works with both GNU and LLVM toolchains
+* Simple Make-based build system
+
+Requirements
+------------
+* RISC-V toolchain with rv32imac_zicsr_zifencei architecture support
+* Make
+
+Usage
+-----
+In an empty folder create a Makefile and define:
+
+BOARD ?= hifive1-revb
+ENVDIR ?= ../path/to/fe310env
+SRC += file1.c file2.c
+include $(ENVDIR)/Makefile.include
+
+After running make, the build drops these into out/ in your project directory:
+* fw.elf
+* fw.hex
+* fw.lst
+* obj/
+
+Use your usual flasher (GDB + OpenOCD or J-Link) to upload the firmware.
+
+License
+-------
+See LICENSE file for copyright and license details.
