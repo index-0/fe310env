@@ -39,7 +39,7 @@ LIBFE310_LIB := $(LIBFE310_DIR)/lib
 LIBENV := $(LIBENV_LIB)/libenv.a
 LIBFE310 := $(LIBFE310_LIB)/libfe310.a
 
-INCLUDES += -I$(LIBENV_INC) -I$(LIBFE310_INC)
+INCLUDES += -I$(ENVDIR)/inc -I$(LIBENV_INC) -I$(LIBFE310_INC)
 ARCH_CFLAGS ?= -mabi=ilp32 -march=rv32imac_zicsr_zifencei\
 	-mtune=sifive-e31 -mcmodel=medlow
 CFLAGS ?= -std=c99 -pipe -Os -Wall -Wextra -Wpedantic
