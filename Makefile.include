@@ -6,6 +6,8 @@ ifndef ENVDIR
 $(error ENVDIR is not set.)
 endif
 
+APPLICATION ?= fw
+
 LIBDIR ?= $(ENVDIR)/lib
 OUTDIR ?= out
 OBJDIR := $(OUTDIR)/obj
@@ -66,7 +68,7 @@ OBJDUMP_OPT ?= --disassemble-all --file-headers --file-offsets\
 OBJ := $(patsubst %.c,$(OBJDIR)/%.o,$(filter %.c,$(SRC))) \
 	$(patsubst %.S,$(OBJDIR)/%.o,$(filter %.S,$(SRC)))
 
-ELF := $(OUTDIR)/fw.elf
+ELF := $(OUTDIR)/$(APPLICATION).elf
 HEX := $(ELF:.elf=.hex)
 LST := $(ELF:.elf=.lst)
 
