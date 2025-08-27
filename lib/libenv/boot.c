@@ -1,10 +1,10 @@
 /* See LICENSE file for copyright and license details. */
 
 #include <fe310/aon.h>
-#include <fe310/clint.h>
 #include <fe310/gpio.h>
 #include <fe310/plic.h>
 #include <fe310/prci.h>
+#include <fe310/riscv.h>
 #include <fe310/spi.h>
 #include <fe310/uart.h>
 
@@ -33,13 +33,6 @@ static u8 trap_stack[TRAP_STACK_SIZE];
 extern void trap_entry(void);
 extern void _start(void);
 
-static void
-wait(void)
-{
-	u64 next = clint_get_mtime() + RTCFQ / 2 + 1;
-	while (clint_get_mtime() < next);
-}
-
 static inline void
 guard(void)
 {
@@ -50,7 +43,7 @@ guard(void)
 
 		gpio->output_en = LED_R;
 		while (1) {
-			wait();
+			delay_ms(500);
 			gpio_tgl(LED_R);
 		};
 	}
@@ -58,13 +51,13 @@ guard(void)
 	save = aon->backup[15];
 
 	gpio->output_en = LED_G;
-	wait();
+	delay_ms(500);
 	gpio_set(LED_G);
 	aon->backup[15] = MAGIC;
-	wait();
+	delay_ms(500);
 	aon->backup[15] = save;
 	gpio_clr(LED_G);
-	wait();
+	delay_ms(500);
 	gpio->output_en = 0;
 }
 
