@@ -36,6 +36,18 @@ After running make, the build drops these into out/ in your project directory:
 
 Use your usual flasher (GDB + OpenOCD or J-Link) to upload the firmware.
 
+Footprint
+---------
+These examples are built to match behavior across environments using the nano
+specs and similar compiler flags, with bootloader sizes excluded.
+
+ example | fe310env | freedom-sdk | delta (B) | delta (%)
+----------------------------------------------------------
+ empty   |     8914 |       14280 |     -5366 |   -37.57%
+ hello   |    12940 |       22170 |     -9230 |   -41.63%
+ pwm     |     9292 |       22018 |    -12726 |   -57.79%
+ spi     |     9348 |       21758 |    -12410 |   -57.03%
+
 License
 -------
 See LICENSE file for copyright and license details.
