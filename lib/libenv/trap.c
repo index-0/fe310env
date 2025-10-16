@@ -43,13 +43,6 @@ void panic(void);
 
 __attribute__((aligned(16))) u8 trap_stack[512];
 
-
-static void __attribute__ ((noinline))
-ebreak(void)
-{
-	__asm__ volatile ("nop");
-}
-
 static void __attribute((used))
 trap_handler(TrapFrame *tf)
 {
@@ -61,8 +54,6 @@ trap_handler(TrapFrame *tf)
 		:
 		: "memory"
 	);
-
-	ebreak();
 
 	cause = mcause & MCAUSE_MSK_CAUSE;
 
