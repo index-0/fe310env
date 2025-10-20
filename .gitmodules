@@ -1,3 +1,3 @@
 [submodule "lib/libfe310"]
 	path = lib/libfe310
-	url = https://codeberg.org/fe310/libfe310.git
+	url = https://git.sr.ht/~idx/libfe310
