@@ -1,12 +1,12 @@
 /* See LICENSE file for copyright and license details. */
 
-#include <fe310/aon.h>
-#include <fe310/gpio.h>
-#include <fe310/plic.h>
-#include <fe310/prci.h>
-#include <fe310/riscv.h>
-#include <fe310/spi.h>
-#include <fe310/uart.h>
+#include <fe310/core/plic.h>
+#include <fe310/delay.h>
+#include <fe310/periph/aon.h>
+#include <fe310/periph/gpio.h>
+#include <fe310/periph/prci.h>
+#include <fe310/periph/spi.h>
+#include <fe310/periph/uart.h>
 
 #include "hifive1.h"
 

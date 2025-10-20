@@ -3,8 +3,8 @@
 #ifndef BOARD_GPIO_H
 #define BOARD_GPIO_H
 
-#include <fe310/gpio.h>
-#include <fe310/plic.h>
+#include <fe310/core/plic.h>
+#include <fe310/periph/gpio.h>
 
 #define LED_R GPIO_PIN(22)
 #define LED_G GPIO_PIN(19)

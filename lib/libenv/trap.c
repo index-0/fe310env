@@ -1,8 +1,8 @@
 /* See LICENSE file for copyright and license details. */
 
 #include <fe310/bits.h>
-#include <fe310/clint.h>
-#include <fe310/plic.h>
+#include <fe310/core/clint.h>
+#include <fe310/core/plic.h>
 
 /* Masks */
 #define MCAUSE_MSK_CAUSE GENMASK(9, 0)
